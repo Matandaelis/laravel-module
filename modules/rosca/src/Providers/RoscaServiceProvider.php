@@ -5,9 +5,15 @@ namespace Modules\Rosca\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Modules\Rosca\Console\CloseRoundsCommand;
 use Modules\Rosca\Listeners\SendWinnerNotification;
 use Modules\Rosca\Events\WinnerSelected;
+use Modules\Rosca\Contracts\GatewayInterface;
+use Modules\Rosca\Gateways\MPesaGateway;
+use Modules\Rosca\Gateways\ManualGateway;
+use Modules\Rosca\Models\Rosca;
+use Modules\Rosca\Policies\RoscaPolicy;
 
 class RoscaServiceProvider extends ServiceProvider
 {
@@ -55,18 +61,17 @@ class RoscaServiceProvider extends ServiceProvider
 
             $cron = config('rosca.close_rounds_schedule', '0 0 * * *');
 
-            // If cron is empty, do not schedule
             if (! empty($cron)) {
-                // schedule as daily at midnight by default — allow overriding via a cron expression
-                // If user set cron expression, we try to use ->cron()
                 try {
                     $schedule->command('rosca:close-rounds')->cron($cron);
                 } catch (\Throwable $e) {
-                    // fallback to daily
                     $schedule->command('rosca:close-rounds')->daily();
                 }
             }
         });
+
+        // Register policy
+        Gate::policy(Rosca::class, RoscaPolicy::class);
     }
 
     public function register(): void
@@ -74,6 +79,15 @@ class RoscaServiceProvider extends ServiceProvider
         // Merge default config
         $this->mergeConfigFrom(__DIR__ . '/../../Config/config.php', 'rosca');
 
-        // Bind any additional services here if needed
+        // Bind gateway based on config
+        $this->app->bind(GatewayInterface::class, function ($app) {
+            $gateway = config('rosca.gateway', 'mpesa');
+
+            if ($gateway === 'mpesa') {
+                return new MPesaGateway(config('rosca.mpesa', []));
+            }
+
+            return new ManualGateway();
+        });
     }
 }

@@ -14,7 +14,9 @@ class Payout extends Model
         'round_id',
         'winner_member_id',
         'amount',
-        'status'
+        'status',
+        'idempotency_key',
+        'external_transaction_id',
     ];
 
     protected $casts = [
