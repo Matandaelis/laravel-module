@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="420" viewBox="0 0 1000 420">
+  <style>
+    .box { fill:#f8fafc; stroke:#0f172a; stroke-width:1.5px; rx:8; }
+    .title { font: bold 16px sans-serif; fill:#0f172a; }
+    .label { font: 13px sans-serif; fill:#0f172a; }
+    .arrow { stroke:#0f172a; stroke-width:2px; marker-end: url(#arrowhead); }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0f172a" />
+    </marker>
+  </defs>
+
+  <!-- App layer -->
+  <rect class="box" x="40" y="30" width="220" height="120" />
+  <text class="title" x="150" y="55" text-anchor="middle">Rosca Module</text>
+  <text class="label" x="150" y="80" text-anchor="middle">Controllers / Jobs / Services</text>
+
+  <!-- Queue -->
+  <rect class="box" x="340" y="30" width="180" height="80" />
+  <text class="title" x="430" y="55" text-anchor="middle">Queue</text>
+  <text class="label" x="430" y="75" text-anchor="middle">Redis / Supervisor</text>
+
+  <!-- Database -->
+  <rect class="box" x="640" y="30" width="220" height="120" />
+  <text class="title" x="750" y="55" text-anchor="middle">Database</text>
+  <text class="label" x="750" y="80" text-anchor="middle">roscas, members, payouts, ledger</text>
+
+  <!-- MPesa -->
+  <rect class="box" x="40" y="200" width="260" height="120" />
+  <text class="title" x="170" y="225" text-anchor="middle">MPesa (Daraja)</text>
+  <text class="label" x="170" y="250" text-anchor="middle">B2C / callbacks</text>
+
+  <!-- Akaunting -->
+  <rect class="box" x="360" y="200" width="300" height="120" />
+  <text class="title" x="510" y="225" text-anchor="middle">Akaunting</text>
+  <text class="label" x="510" y="250" text-anchor="middle">Journal / Accounts</text>
+
+  <!-- Arrows -->
+  <line class="arrow" x1="260" y1="90" x2="340" y2="90" />
+  <text class="label" x="300" y="82" text-anchor="middle">dispatch job</text>
+
+  <line class="arrow" x1="520" y1="90" x2="640" y2="90" />
+  <text class="label" x="580" y="82" text-anchor="middle">persist / query</text>
+
+  <line class="arrow" x1="160" y1="150" x2="160" y2="200" />
+  <text class="label" x="120" y="175" text-anchor="middle">outbound payout request</text>
+
+  <line class="arrow" x1="300" y1="260" x2="360" y2="260" />
+  <text class="label" x="330" y="252" text-anchor="middle">notify / webhook</text>
+
+  <line class="arrow" x1="700" y1="150" x2="700" y2="200" />
+  <text class="label" x="730" y="175" text-anchor="middle">store results</text>
+
+  <line class="arrow" x1="560" y1="260" x2="640" y2="120" />
+  <text class="label" x="600" y="200" text-anchor="middle">create journals</text>
+
+  <!-- Legend -->
+  <text class="label" x="40" y="350">Legend: Module sends payout requests to MPesa; jobs run via Queue; DB holds authoritative state; Akaunting receives journals for accounting.</text>
+</svg>
