@@ -1,0 +1,7 @@
+%%{init: {'theme': 'default'}}%%
+
+flowchart LR
+  App[Rosca Module]\n(Controllers\nJobs\nServices) -->|dispatch job| Queue[Queue / Worker]\n  Queue -->|persist / query| DB[(Database)\n(roscas, members, payouts, ledger)]
+  App -->|outbound payout request| MPESA[MPesa (Daraja)\nB2C / callbacks]
+  MPESA -->|notify / webhook| App
+  App -->|create journals| AKA[Akaunting\n(Journals / Accounts)]
