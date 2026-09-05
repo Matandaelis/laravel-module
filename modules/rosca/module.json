@@ -1,0 +1,12 @@
+{
+  "name": "Rosca",
+  "alias": "rosca",
+  "description": "Rotating savings and credit association module (Chama-style for Kenya)",
+  "version": "0.1.0",
+  "priority": 0,
+  "requires": [],
+  "files": [],
+  "providers": [
+    "Modules\\Rosca\\Providers\\RoscaServiceProvider"
+  ]
+}
