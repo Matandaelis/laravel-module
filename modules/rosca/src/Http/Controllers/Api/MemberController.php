@@ -2,7 +2,8 @@
 
 namespace Modules\Rosca\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use Modules\Rosca\Http\Requests\MemberRequest;
+use Modules\Rosca\Http\Resources\MemberResource;
 use Illuminate\Routing\Controller;
 use Modules\Rosca\Models\Member;
 
@@ -10,43 +11,31 @@ class MemberController extends Controller
 {
     public function index()
     {
-        return response()->json(Member::all());
+        return MemberResource::collection(Member::all());
     }
 
-    public function store(Request $request)
+    public function store(MemberRequest $request)
     {
-        $data = $request->validate([
-            'rosca_id' => 'required|exists:roscas,id',
-            'name' => 'required|string|max:255',
-            'user_id' => 'nullable|integer',
-            'contact' => 'nullable|string|max:255',
-        ]);
+        $member = Member::create($request->validated());
 
-        $member = Member::create($data);
-
-        return response()->json($member, 201);
+        return new MemberResource($member);
     }
 
-    public function show(Member $roscaMember)
+    public function show(Member $member)
     {
-        return response()->json($roscaMember);
+        return new MemberResource($member);
     }
 
-    public function update(Request $request, Member $roscaMember)
+    public function update(MemberRequest $request, Member $member)
     {
-        $data = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'contact' => 'nullable|string|max:255',
-        ]);
+        $member->update($request->validated());
 
-        $roscaMember->update($data);
-
-        return response()->json($roscaMember);
+        return new MemberResource($member);
     }
 
-    public function destroy(Member $roscaMember)
+    public function destroy(Member $member)
     {
-        $roscaMember->delete();
+        $member->delete();
 
         return response()->json(null, 204);
     }

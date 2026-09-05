@@ -7,21 +7,21 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('rosca_contributions', function (Blueprint $table) {
+        Schema::create('rosca_members', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('rosca_id');
-            $table->unsignedBigInteger('member_id');
-            $table->decimal('amount', 12, 2);
-            $table->timestamp('contributed_at')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->string('name');
+            $table->string('contact')->nullable();
             $table->timestamps();
 
             $table->foreign('rosca_id')->references('id')->on('roscas')->onDelete('cascade');
-            $table->foreign('member_id')->references('id')->on('rosca_members')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('rosca_contributions');
+        Schema::dropIfExists('rosca_members');
     }
 };

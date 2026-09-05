@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Member extends Model
 {
-    protected $table = 'members';
+    protected $table = 'rosca_members';
 
     protected $fillable = [
         'rosca_id',
@@ -24,6 +24,6 @@ class Member extends Model
 
     public function contributions(): HasMany
     {
-        return $this->hasMany(Contribution::class);
+        return $this->hasMany(Contribution::class, 'member_id');
     }
 }
