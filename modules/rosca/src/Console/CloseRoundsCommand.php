@@ -10,6 +10,7 @@ use Modules\Rosca\Jobs\ProcessPayoutJob;
 use Modules\Rosca\Events\WinnerSelected;
 use Modules\Rosca\Events\RoundClosed;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class CloseRoundsCommand extends Command
 {
@@ -29,34 +30,46 @@ class CloseRoundsCommand extends Command
         foreach ($rounds as $round) {
             $this->info('Processing round ' . $round->id . ' for rosca ' . $round->rosca_id);
 
-            $winner = $selection->selectWinner($round);
+            // Use transaction and lock to prevent concurrent winners
+            DB::transaction(function () use ($round, $selection) {
+                $r = Round::where('id', $round->id)->lockForUpdate()->first();
 
-            if (! $winner) {
-                $this->warn('No winner found for round ' . $round->id);
-                continue;
-            }
+                if ($r->winner_member_id) {
+                    // already processed
+                    return;
+                }
 
-            // Mark winner on round
-            $round->winner_member_id = $winner->id;
-            $round->save();
+                $winner = $selection->selectWinner($r);
 
-            // Create payout record
-            $payout = Payout::create([
-                'rosca_id' => $round->rosca_id,
-                'round_id' => $round->id,
-                'winner_member_id' => $winner->id,
-                'amount' => $round->collected_amount ?? 0,
-                'status' => 'pending',
-            ]);
+                if (! $winner) {
+                    $this->warn('No winner found for round ' . $r->id);
+                    return;
+                }
 
-            // Dispatch job to process payout
-            ProcessPayoutJob::dispatch($payout);
+                // Mark winner on round
+                $r->winner_member_id = $winner->id;
+                $r->save();
 
-            // Fire events
-            event(new WinnerSelected($round, $winner));
-            event(new RoundClosed($round));
+                // Create payout record with idempotency key
+                $payout = Payout::create([
+                    'rosca_id' => $r->rosca_id,
+                    'round_id' => $r->id,
+                    'winner_member_id' => $winner->id,
+                    'amount' => $r->collected_amount ?? 0,
+                    'status' => 'pending',
+                    'idempotency_key' => 'payout-' . $r->id . '-' . time(),
+                ]);
 
-            $this->info('Winner selected: member_id=' . $winner->id . ' payout_id=' . $payout->id);
+                // Dispatch job to process payout
+                ProcessPayoutJob::dispatch($payout);
+
+                // Fire events
+                event(new WinnerSelected($r, $winner));
+                event(new RoundClosed($r));
+
+            });
+
+            $this->info('Queued processing for round ' . $round->id);
         }
 
         return 0;

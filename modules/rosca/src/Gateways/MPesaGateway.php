@@ -6,6 +6,7 @@ use Modules\Rosca\Contracts\GatewayInterface;
 use Modules\Rosca\Models\Payout;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class MPesaGateway implements GatewayInterface
 {
@@ -18,7 +19,6 @@ class MPesaGateway implements GatewayInterface
 
     protected function oauthToken()
     {
-        // Daraja OAuth token
         $key = $this->config['consumer_key'] ?? null;
         $secret = $this->config['consumer_secret'] ?? null;
 
@@ -39,13 +39,11 @@ class MPesaGateway implements GatewayInterface
 
     public function pay(Payout $payout): array
     {
-        // Implement B2C payment or STK push as appropriate. Here we implement a B2C placeholder using Daraja B2C endpoint.
         try {
             $token = $this->oauthToken();
 
             $base = $this->config['environment'] === 'production' ? 'https://api.safaricom.co.ke' : 'https://sandbox.safaricom.co.ke';
 
-            // For B2C we need initiatorName, securityCredential, shortcode, amount, partyA, partyB, remarks, queueTimeOutURL, resultURL, occasion
             $body = [
                 'InitiatorName' => $this->config['b2c_initiator_name'] ?? $this->config['shortcode'],
                 'SecurityCredential' => $this->config['b2c_security_credential'] ?? '',
@@ -59,31 +57,37 @@ class MPesaGateway implements GatewayInterface
                 'Occasion' => 'Rosca Payout',
             ];
 
-            // This is a best-effort call; many Daraja setups require encryption & security credential generation.
             $response = Http::withToken($token)->post($base . '/mpesa/b2c/v1/paymentrequest', $body);
 
             if (! $response->successful()) {
                 return [
                     'success' => false,
+                    'queued' => false,
                     'transaction_id' => null,
+                    'external_request_id' => null,
                     'message' => $response->body(),
                 ];
             }
 
             $data = $response->json();
 
-            // Attempt to extract a transaction id
-            $tx = $data['ConversationID'] ?? ($data['TransactionID'] ?? Str::random(12));
+            // Daraja often returns ConversationID for async processing
+            $conversation = $data['ConversationID'] ?? $data['ConversationID'] ?? Str::random(12);
 
             return [
                 'success' => true,
-                'transaction_id' => $tx,
+                'queued' => true,
+                'transaction_id' => null,
+                'external_request_id' => $conversation,
                 'message' => null,
             ];
         } catch (\Throwable $e) {
+            Log::error('MPesa pay error: ' . $e->getMessage(), ['payout_id' => $payout->id]);
             return [
                 'success' => false,
+                'queued' => false,
                 'transaction_id' => null,
+                'external_request_id' => null,
                 'message' => $e->getMessage(),
             ];
         }
