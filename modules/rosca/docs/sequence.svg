@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" viewBox="0 0 1000 520">
+  <style>
+    .lifeline { stroke:#94a3b8; stroke-width:2px; }
+    .actor { font: bold 14px sans-serif; fill:#0f172a; }
+    .note { font: 12px sans-serif; fill:#0f172a; }
+    .arrow { stroke:#0f172a; stroke-width:2px; marker-end: url(#arrowhead); }
+    .box { fill:none; stroke:none; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0f172a" />
+    </marker>
+  </defs>
+
+  <!-- Actors -->
+  <text class="actor" x="80" y="40">Scheduler</text>
+  <text class="actor" x="300" y="40">Rosca App</text>
+  <text class="actor" x="560" y="40">Queue / Worker</text>
+  <text class="actor" x="820" y="40">MPesa Provider</text>
+
+  <!-- Lifelines -->
+  <line class="lifeline" x1="100" y1="60" x2="100" y2="480"/>
+  <line class="lifeline" x1="320" y1="60" x2="320" y2="480"/>
+  <line class="lifeline" x1="580" y1="60" x2="580" y2="480"/>
+  <line class="lifeline" x1="860" y1="60" x2="860" y2="480"/>
+
+  <!-- Messages -->
+  <!-- Scheduler -> App -->
+  <line class="arrow" x1="100" y1="100" x2="320" y2="100" />
+  <text class="note" x="210" y="92" text-anchor="middle">run rosca:close-rounds</text>
+
+  <!-- App -> DB/Selection (internal step) -->
+  <line class="arrow" x1="320" y1="140" x2="320" y2="200" />
+  <text class="note" x="360" y="170">select winner (lockForUpdate)</text>
+
+  <!-- App -> Queue -->
+  <line class="arrow" x1="340" y1="220" x2="580" y2="220" />
+  <text class="note" x="460" y="212" text-anchor="middle">dispatch ProcessPayoutJob(payout)</text>
+
+  <!-- Worker -> MPesa -->
+  <line class="arrow" x1="580" y1="260" x2="860" y2="260" />
+  <text class="note" x="720" y="252" text-anchor="middle">call B2C paymentrequest (async)</text>
+
+  <!-- MPesa -> App (webhook) -->
+  <line class="arrow" x1="860" y1="340" x2="320" y2="340" />
+  <text class="note" x="590" y="332" text-anchor="middle">POST /api/rosca/mpesa/callback (ConversationID, ResultCode)</text>
+
+  <!-- App -> DB finalization -->
+  <line class="arrow" x1="320" y1="380" x2="320" y2="420" />
+  <text class="note" x="360" y="400">finalize payout (processed/failed), ledger</text>
+
+  <!-- App -> Accounting -->
+  <line class="arrow" x1="320" y1="440" x2="580" y2="440" />
+  <text class="note" x="450" y="432">create Akaunting journal / ledger</text>
+
+  <!-- Notes -->
+  <rect x="40" y="480" width="920" height="30" fill="#e2e8f0" rx="6"/>
+  <text class="note" x="60" y="500">Note: ProcessPayoutJob records external_request_id and leaves payout.status=processing until webhook or requery confirms final status.</text>
+</svg>

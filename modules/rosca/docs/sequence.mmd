@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Scheduler
+    participant App as Rosca App
+    participant Worker as Queue/Worker
+    participant MPesa as MPesa Provider
+
+    Scheduler->>App: run rosca:close-rounds
+    App->>App: select winner (lockForUpdate)
+    App->>Worker: dispatch ProcessPayoutJob(payout)
+    Worker->>MPesa: call B2C paymentrequest (async)
+    MPesa-->>App: POST /api/rosca/mpesa/callback (ConversationID, ResultCode)
+    App->>App: finalize payout (processed/failed), ledger
+    App->>AKA: create Akaunting journal / ledger

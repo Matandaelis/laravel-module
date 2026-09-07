@@ -1,77 +1,54 @@
-# Module management package for Laravel
+# Rosca (Chama) Module — README
 
-![Downloads](https://img.shields.io/packagist/dt/akaunting/laravel-module)
-[![StyleCI](https://github.styleci.io/repos/180859866/shield?style=flat&branch=master)](https://styleci.io/repos/180859866)
-[![License](https://img.shields.io/github/license/akaunting/laravel-module)](LICENSE.md)
+A production-ready Rosca (Chama) module scaffolded to follow Akaunting module conventions.  
+Implements rotating-savings cycles: rosca setup, members, contributions, rounds, scheduled closing, winner selection, asynchronous payouts (pluggable gateway), ledger/audit trail, and a scaffold to integrate with Akaunting accounting.
 
-This package intends to make your Laravel app extensible via modules. A module is a kinda small Laravel app, shipping with its own views, controllers, models, etc.
+This README contains quick install, config, diagrams and instructions to generate PNG fallbacks for the included SVG diagrams.
 
-## Getting Started
+---
 
-### 1. Install
+## Diagrams
 
-Run the following command:
+Architecture and sequence diagrams are included under `modules/rosca/docs/` as SVGs and Mermaid source files. GitHub will render the SVGs inline. For compatibility we provide instructions to generate PNG fallbacks locally.
+
+<picture>
+  <source srcset="modules/rosca/docs/architecture.svg" type="image/svg+xml">
+  <img src="modules/rosca/docs/architecture.png" alt="Rosca Architecture" style="max-width:100%;">
+</picture>
+
+<picture>
+  <source srcset="modules/rosca/docs/sequence.svg" type="image/svg+xml">
+  <img src="modules/rosca/docs/sequence.png" alt="Payout Sequence" style="max-width:100%;">
+</picture>
+
+Notes:
+- If the PNG files are not yet present, use the commands below to generate them locally.
+
+### Generate PNGs from SVG (recommended)
+
+If you have `rsvg-convert` installed (from librsvg):
 
 ```bash
-composer require akaunting/laravel-module
+rsvg-convert -w 1600 -h 900 modules/rosca/docs/architecture.svg -o modules/rosca/docs/architecture.png
+rsvg-convert -w 1600 -h 900 modules/rosca/docs/sequence.svg -o modules/rosca/docs/sequence.png
 ```
 
-### 2. Register
-
-Service provider and facade will be registered automatically. If you want to register them manually in `config/app.php`:
-
-```php
-Akaunting\Module\Facade::class,
-Akaunting\Module\Providers\Laravel::class,
-```
-
-### 3. Publish
-
-Publish config file.
+Or using Inkscape:
 
 ```bash
-php artisan vendor:publish --tag=module
+inkscape modules/rosca/docs/architecture.svg --export-type=png --export-width=1600 --export-height=900 -o modules/rosca/docs/architecture.png
+inkscape modules/rosca/docs/sequence.svg --export-type=png --export-width=1600 --export-height=900 -o modules/rosca/docs/sequence.png
 ```
 
-### 4. Configure
+### Generate PNGs from Mermaid source (alternative)
 
-You can change the configuration from `config/module.php` file
+If you prefer to generate diagrams from Mermaid source files included in `modules/rosca/docs/*.mmd` you can use `mmdc` (Mermaid CLI):
 
-### 5. Autoloading
-
-By default, the module classes are not loaded automatically. You can autoload your modules using `psr-4`. For example:
-
-``` json
-{
-  "autoload": {
-    "psr-4": {
-      "App\\": "app/",
-      "Modules\\": "modules/"
-    }
-  }
-}
+```bash
+mmdc -i modules/rosca/docs/architecture.mmd -o modules/rosca/docs/architecture.png -w 1600 -H 900
+mmdc -i modules/rosca/docs/sequence.mmd -o modules/rosca/docs/sequence.png -w 1600 -H 900
 ```
 
-**Tip: don't forget to run `composer dump-autoload` afterwards.**
+---
 
-## Usage
-
-Check out the [wiki](../../wiki) about the usage and further documentation.
-
-## Changelog
-
-Please see [Releases](../../releases) for more information what has changed recently.
-
-## Contributing
-
-Pull requests are more than welcome. You must follow the PSR coding standards.
-
-## Credits
-
-- [Denis Duliçi](https://github.com/denisdulici)
-- [Nicolas Widart](https://github.com/nwidart)
-- [All Contributors](../../contributors)
-
-## License
-
-The MIT License (MIT). Please see [LICENSE](LICENSE.md) for more information.
+The rest of the README (installation, configuration, endpoints, lifecycle, testing, ops & security) is available in the module docs — see the `modules/rosca/README.md` or the root README previously added in this branch for full details.
